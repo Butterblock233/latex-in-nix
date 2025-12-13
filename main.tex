@@ -1,0 +1,71 @@
+\documentclass[12pt, a4paper]{article}
+
+
+\usepackage{ctex}
+\usepackage{amsmath}           % 数学公式支持
+\usepackage{geometry}          % 页面布局设置
+\usepackage{enumitem}          % 增强列表环境，用于调整间距
+\usepackage{xcolor}            % 颜色支持，用于美化链接样式
+\usepackage{listings}
+\usepackage{chemfig}
+\usepackage[version=4,arrows=pgf-filled,
+textfontname=sffamily,
+mathfontname=mathsf]{mhchem}
+
+\lstset{
+    basicstyle=\ttfamily\small,           % 基础样式：等宽字体 + 小号字
+    breaklines=true,                      % 自动换行
+    keywordstyle=\color{blue}\bfseries,   % 关键字颜色：蓝色粗体
+    commentstyle=\color{gray},            % 注释颜色：灰色
+    stringstyle=\color{red},              % 字符串颜色：红色
+    numbers=left,                         % 行号显示在左侧
+    numberstyle=\tiny\color{gray},        % 行号样式
+    stepnumber=1,                          % 行号步进
+    % frame=single,                          % 代码块加边框
+    showspaces=false,                      % 不显示空格标记
+    showstringspaces=false,                % 字符串中不显示空格标记
+    tabsize=2                              % Tab键宽度
+}
+
+% ===== 页面布局 =====
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+
+
+\newcommand{\wikilink}[1]{\textcolor{blue}{\texttt{#1}}}
+
+\setlist{nosep, topsep=0pt}
+
+\title{ 使用Nix 构建 \LaTeX 文档}
+\author{Butterblock233}
+\date{ \today }
+\begin{document}
+
+\maketitle
+
+\section{概述}
+Nix是一款基于纯函数式的Nix语言的包管理器。得益于纯函数式的特性，Nix搭建的环境具有极强的可复现性。除了网络错误几乎不会导致构建出错。本文主要介绍了利用Nix来搭建一个可靠的构建环境来编写 \LaTeX 文档。本仓库也能作为现成的模板仓库，帮助用户绕开搭建环境的烦恼，专心创作内容。
+
+\section{构建此文档}
+\subsection{安装并配置Nix}
+NixOS用户只需要确保自己已经启用了flakes和new-command特性即可。
+
+非NixOS用户首先需要安装好Nix包管理器，并配置启用flakes和new-command新特性。
+\subsection{构建}
+如果你已经安装好Nix，接下来只需要\verb|nix build|即可执行完整的构建流程，构建产生的PDF文件能够在\verb|result/|里找到。
+
+\section{工具链介绍}
+\subsection{Nix}
+Nix是基于纯函数式语言Nix的包管理器。Nix和NixOS项目直接起源于其创始人 Eelco Dolstra 的博士论文工作，这奠定了它独一无二的理论基础。在他的论文里提出了如下思想：
+\begin{itemize}
+\item 纯函数式构建：将软件构建过程建模为一个纯函数。函数的“输入”是所有构建依赖（源码、编译器、库、环境变量等），函数的“输出”是构建结果（软件包）。
+\item hash路径存储：nix的软件包全部存储在例如\lstinline|/nix/sha256-python3.11|的路径内，这样nix可以精确检索，同时确保了软件包能够共存。
+\end{itemize}
+\begin{itemize}
+\item Nix：主要的包管理工具，能够创建一个可靠的环境，通过\verb|nix build|一键构建
+\item LaTeX Workspace：流行的VSCode插件，提供了构建、实时预览等实用功能
+\item Nix-env selector： 在VSCode中使用Nix环境
+\item direnv：在终端中自动进入Nix环境，而不需要手动执行\verb|Nix develop|
+\end{itemize}
+
+
+\end{document}
