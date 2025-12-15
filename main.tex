@@ -2,70 +2,159 @@
 
 
 \usepackage{ctex}
-\usepackage{amsmath}           % 数学公式支持
-\usepackage{geometry}          % 页面布局设置
-\usepackage{enumitem}          % 增强列表环境，用于调整间距
-\usepackage{xcolor}            % 颜色支持，用于美化链接样式
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
 \usepackage{listings}
 \usepackage{chemfig}
 \usepackage[version=4,arrows=pgf-filled,
 textfontname=sffamily,
 mathfontname=mathsf]{mhchem}
+\usepackage{minted}
+\usepackage{fontspec}
+\usepackage{hyperref}
 
-\lstset{
-    basicstyle=\ttfamily\small,           % 基础样式：等宽字体 + 小号字
-    breaklines=true,                      % 自动换行
-    keywordstyle=\color{blue}\bfseries,   % 关键字颜色：蓝色粗体
-    commentstyle=\color{gray},            % 注释颜色：灰色
-    stringstyle=\color{red},              % 字符串颜色：红色
-    numbers=left,                         % 行号显示在左侧
-    numberstyle=\tiny\color{gray},        % 行号样式
-    stepnumber=1,                          % 行号步进
-    % frame=single,                          % 代码块加边框
-    showspaces=false,                      % 不显示空格标记
-    showstringspaces=false,                % 字符串中不显示空格标记
-    tabsize=2                              % Tab键宽度
-}
-
-% ===== 页面布局 =====
+% TBD: 使用JetBrains Mono会导致构建失败，但JetBrains Mono NL可以
+\setmonofont{JetBrains Mono NL}
+\setCJKmonofont{Source Han Sans SC}
 \geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
-
-
-\newcommand{\wikilink}[1]{\textcolor{blue}{\texttt{#1}}}
-
 \setlist{nosep, topsep=0pt}
 
 \title{ 使用Nix 构建 \LaTeX 文档}
-\author{Butterblock233}
+\author{\href{https://github.com/Butterblock233}{Butterblock233}}
 \date{ \today }
+
+
 \begin{document}
 
 \maketitle
 
 \section{概述}
-Nix是一款基于纯函数式的Nix语言的包管理器。得益于纯函数式的特性，Nix搭建的环境具有极强的可复现性。除了网络错误几乎不会导致构建出错。本文主要介绍了利用Nix来搭建一个可靠的构建环境来编写 \LaTeX 文档。本仓库也能作为现成的模板仓库，帮助用户绕开搭建环境的烦恼，专心创作内容。
+\LaTeX 是当今使用最广泛的专业排版系统之一，能构建高质量的文档。是论文写作等专业出版的必备工具之一。但由于\LaTeX 自身的诸多问题，导致环境的搭建繁琐且容易出错。
+
+Nix是一款基于纯函数式的Nix语言的包管理器。Nix将整个构建过程定义为一个巨大的纯函数。例如本项目中，\LaTeX 实现、字体等软件包作为构建输入，构建输出为构建\TeX 源文件产生的PDF。相同的构建输入一定能够产生相同的构建输出。
+
+本文主要介绍了利用Nix来搭建一个可靠的构建环境来编写 \LaTeX 文档。本仓库也能作为现成的模板仓库，帮助用户避开搭建环境的烦恼，专心创作内容。
 
 \section{构建此文档}
+本项目使用LaTeX编写文档，来证明Nix管理的项目环境的确稳定可靠。
 \subsection{安装并配置Nix}
-NixOS用户只需要确保自己已经启用了flakes和new-command特性即可。
-
+\begin{itemize}
+\item{对于NixOS用户}: \\
+NixOS自带Nix包管理器，用户只需要确保自己已经启用了flakes和new-command特性。在配置中加入以下选项，
+\begin{minted}{nix}
+    nix.settings.experimental-features = [
+        "nix-command"
+        "flakes"
+    ];
+\end{minted}
+重新构建系统即可启用。
+\item{对于非NixOS用户}: \\
 非NixOS用户首先需要安装好Nix包管理器，并配置启用flakes和new-command新特性。
+\end{itemize}
+
+\subsection{验证安装}
+\noindent 安装完成后，在项目中执行\verb|nix flake show|命令来验证，通常可以得到以下类似结果：
+\begin{minted}[obeytabs]{shell}
+    git+file:///home/butter/src/tex
+    └───packages
+        ├───aarch64-darwin
+        │   └───default omitted (use '--all-systems' to show)
+        ├───aarch64-linux
+        │   └───default omitted (use '--all-systems' to show)
+        ├───x86_64-darwin
+        │   └───default omitted (use '--all-systems' to show)
+        └───x86_64-linux
+            └───default: package 'pdf'
+\end{minted}
 \subsection{构建}
-如果你已经安装好Nix，接下来只需要\verb|nix build|即可执行完整的构建流程，构建产生的PDF文件能够在\verb|result/|里找到。
+安装好Nix之后，接下来只需要执行\verb|nix build|即可开始构建，产生的PDF文件能够在\verb|result/|里找到。
 
 \section{工具链介绍}
 \subsection{Nix}
 Nix是基于纯函数式语言Nix的包管理器。Nix和NixOS项目直接起源于其创始人 Eelco Dolstra 的博士论文工作，这奠定了它独一无二的理论基础。在他的论文里提出了如下思想：
 \begin{itemize}
-\item 纯函数式构建：将软件构建过程建模为一个纯函数。函数的“输入”是所有构建依赖（源码、编译器、库、环境变量等），函数的“输出”是构建结果（软件包）。
+\item 纯函数式构建：将软件构建过程建模为一个纯粹的巨大的函数。函数的“输入”是所有构建依赖（源码、编译器、库、环境变量等），函数的“输出”是构建结果（软件包）。
 \item hash路径存储：nix的软件包全部存储在例如\lstinline|/nix/sha256-python3.11|的路径内，这样nix可以精确检索，同时确保了软件包能够共存。
 \end{itemize}
+
+\bigskip
+
+Nix既可以作为项目的包管理器提供了稳定可复现的环境，也可以直接管理整个NixOS系统的所有配置。Nix利用声明式的方法配置其功能，从而避免了运维人员需要手动输入大量命令。一个简单的nix配置模块可能长这样：
+\begin{minted}[]{Nix}
+{...}:
+{
+    # 启用Neovim包
+    packages.neovim.enable=true;
+}
+\end{minted}
+
+\subsection{flakes}
+flakes是Nix近年引入的一项新特性。回顾一下前面的Nix配置，不难发现，该模块只声明的构建输出（启用Neovim包），没有声明构建输入（Neovim软件包从哪而来）。这导致结果不完全确定。flakes正是为了解决这一问题而生的。一份简化的 NixOS with flakes 配置如下：
+\begin{minted}{nix}
+{
+  description = "A simple NixOS flake config";
+
+  inputs = {
+    # nigpkgs输入源，并锁定了25.11版本
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    # nispkgs-unstable源
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+  };
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+      ...
+    }@inputs:
+    {
+      nixosConfigurations = {
+        wsl = nixpkgs.lib.nixosSystem {
+          # configuration for WSL distro
+          system = "x86_64-linux";
+          modules = [ ];
+        };
+        # configuration for remote machines
+        remote = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit inputs; };
+          modules = [ ];
+
+        };
+      };
+    };
+}
+\end{minted}
+通过以上配置我们可以看出，一个flake的核心是input与output。flake对input的锁定机制确保了构建结果的稳定。
+
+本项目的flake.nix主要负责定义输入源，具体输出过程则定义于default.nix
+\subsection{其它工具链}
 \begin{itemize}
-\item Nix：主要的包管理工具，能够创建一个可靠的环境，通过\verb|nix build|一键构建
-\item LaTeX Workspace：流行的VSCode插件，提供了构建、实时预览等实用功能
-\item Nix-env selector： 在VSCode中使用Nix环境
-\item direnv：在终端中自动进入Nix环境，而不需要手动执行\verb|Nix develop|
+    \item LaTeX Workspace：流行的 \LaTeX\ for VSCode插件，提供了构建、实时预览等实用功能。笔者尤其喜欢保存时自动构建并刷新预览的功能
+    \item Nix-Env Selector：在VSCode中使用Nix环境，以确保LaTeX Workspace能够正确使用Nix提供的环境。\bigbreak
+    直接执行\verb|nix build|稳定且可靠，但构建耗时较长。为了确保良好的预览、编辑体验，笔者对LaTeX Workspace的构建流程做了一些额外的修改（具体位于.vscode/settings.json）。因此需要加载Nix环境供LaTeX Workspace使用。\bigbreak
+    在安装并启用Nix-Env Selector后，加载由default.nix提供的环境即可。加载flakes.nix提供的环境会报错，具体原因有待排查。
+    \item direnv：在终端中自动进入Nix环境，而不需要每次手动执行\verb|Nix develop|
 \end{itemize}
 
+\section{字体配置}
+\noindent XeLaTeX支持现代的OTF格式。利用以下\href{https://stackoverflow.com/questions/5109550/how-to-get-a-list-of-all-available-ttf-fonts-with-xetex#comment105803157_28143009}{命令}列出可用的字体格式：
+\begin{minted}{shell}
+fc-list | cut -d\  -f2-99 | cut -d: -f1 | sort -u
+\end{minted}
+要安装新的字体，只需要在default.nix中修改fonts列表即可\pagebreak
+\begin{minted}{nix}
+fonts = with pkgs; [
+    source-han-serif
+    source-han-sans
+    jetbrains-mono
+    # other fonts
+    ...
+  ];
+\end{minted}
 
+\section{延伸阅读}
+本文主要介绍了利用Nix来搭建稳定、可靠的\LaTeX 环境，对于如何学习 \LaTeX 等内容，可以参考以下文章：
 \end{document}
