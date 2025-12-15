@@ -16,23 +16,4 @@
 			"env": {}
 		},
 	],
-	// "latex-workshop.latex.outDir": "%DIR%/result",
 }
-// {
-//   "latex-workshop.latex.tools": [
-//     {
-//       "name": "nix-build",
-//       "command": "nix",
-//       "args": [
-//         "build",
-//       ]
-//     }
-//   ],
-//   "latex-workshop.latex.recipes": [
-//     {
-//       "name": "nix-build",
-//       "tools": ["nix-build"]
-//     }
-//   ],
-//   "latex-workshop.latex.outDir": "%DIR%/result",
-// }
