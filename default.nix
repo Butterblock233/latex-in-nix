@@ -21,6 +21,12 @@ pkgs.stdenv.mkDerivation {
         geometry
         xcolor
         listings
+        chemfig
+        simplekv
+        mhchem
+        minted
+        upquote
+        lineno
         ;
     })
     source-han-serif
