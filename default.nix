@@ -8,13 +8,16 @@ let
     source-han-serif
     source-han-sans
     jetbrains-mono
-
+    liberation_ttf
   ];
 in
 pkgs.stdenv.mkDerivation {
   name = "pdf";
   src = ./.;
   buildInputs = with pkgs; [
+    # 为了节省磁盘空间使用了基础texlive加上自定义包
+    # 在最底部添加新包重新nix build即可
+    # 如果觉得过于繁琐可以把整个(texlive.combine .....)换成texliveFull
     (texlive.combine {
       inherit (texlive)
         latexmk
@@ -35,15 +38,16 @@ pkgs.stdenv.mkDerivation {
         minted
         upquote
         lineno
+        # add your custom package here
         ;
-      jetbrainsmono-otf = pkgs.texlivePackages.jetbrainsmono-otf;
     })
     python313Packages.pygments
     fontconfig
-	    fonts
+    fonts
   ];
-
+  # ensure texlive can find fonts
   FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = fonts; };
+
   buildPhase = ''
     mkdir -p .cache/latex
     latexmk -interaction=nonstopmode -auxdir=.cache/latex -xelatex main.tex
