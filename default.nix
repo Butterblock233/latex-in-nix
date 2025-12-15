@@ -3,6 +3,14 @@
   ...
 }:
 
+let
+  fonts = with pkgs; [
+    source-han-serif
+    source-han-sans
+    jetbrains-mono
+
+  ];
+in
 pkgs.stdenv.mkDerivation {
   name = "pdf";
   src = ./.;
@@ -28,11 +36,14 @@ pkgs.stdenv.mkDerivation {
         upquote
         lineno
         ;
+      jetbrainsmono-otf = pkgs.texlivePackages.jetbrainsmono-otf;
     })
-    source-han-serif
-    source-han-sans
-
+    python313Packages.pygments
+    fontconfig
+	    fonts
   ];
+
+  FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = fonts; };
   buildPhase = ''
     mkdir -p .cache/latex
     latexmk -interaction=nonstopmode -auxdir=.cache/latex -xelatex main.tex
