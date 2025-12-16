@@ -15,10 +15,25 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          config = {
+            allowUnfree = true;
+          };
+        };
+        pkgsConfig = import ./pkgs.nix { inherit pkgs; };
       in
       {
-        packages.default = pkgs.callPackage ./default.nix { };
+        packages.default = pkgs.callPackage ./default.nix { inherit pkgs; };
+
+        devShells.default = pkgs.mkShell {
+          packages = pkgsConfig.buildInputs;
+          FONTCONFIG_FILE = pkgsConfig.fontConfig;
+          shellHook = ''
+            export TEXINPUTS=".:$TEXINPUTS"
+            echo "LaTeX Environment is ready"
+          '';
+        };
       }
     );
 }

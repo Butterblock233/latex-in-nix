@@ -1,43 +1,39 @@
 {
   pkgs ? import <nixpkgs> { },
-  ...
 }:
 
 let
-  fonts = with pkgs; [
-	# add extra fonts here
-  ];
+  pkgsConfig = import ./pkgs.nix { inherit pkgs; };
 in
 pkgs.stdenv.mkDerivation {
   name = "pdf";
   src = ./.;
-  buildInputs = with pkgs; [
-    # 为了节省磁盘空间使用了基础texlive加上自定义包
-    # 在最底部添加新包重新nix build即可
-    # 如果觉得过于繁琐可以把整个(texlive.combine .....)换成texliveFull
-    (texlive.combine {
-      inherit (texlive)
-        latexmk
-        scheme-basic
-        biblatex
-        xetex
-        biber
-        fontspec
-        ctex
-        # add your custom package here
-        ;
-    })
-    python313Packages.pygments
-    fontconfig
-    fonts
-  ];
-  # ensure texlive can find fonts
-  FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = fonts; };
+  buildInputs = pkgsConfig.buildInputs;
+
+  FONTCONFIG_FILE = pkgsConfig.fontConfig;
+
+  preBuild = ''
+    export HOME=$TMPDIR/home
+    mkdir -p $HOME
+
+    export XDG_CACHE_HOME=$TMPDIR/cache
+    mkdir -p $XDG_CACHE_HOME/fontconfig
+
+    export TEXINPUTS=".:$TEXINPUTS"
+
+
+  '';
 
   buildPhase = ''
     mkdir -p .cache/latex
+
+    # build LateX document
     latexmk -interaction=nonstopmode -auxdir=.cache/latex -xelatex main.tex
+
+    # biber main
+    # xelatex -interaction=nonstopmode main.tex
   '';
+
   installPhase = ''
     mkdir -p $out
     cp main.pdf $out
