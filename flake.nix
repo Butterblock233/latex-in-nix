@@ -12,7 +12,7 @@
       nixpkgs,
       flake-utils,
     }:
-    flake-utils.lib.eachDefaultSystem (
+    (flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = import nixpkgs {
@@ -35,5 +35,25 @@
           '';
         };
       }
-    );
+    ))
+    // {
+      templates = {
+        full = {
+          path = ./templates/full;
+          description = "The full LaTeX template";
+          welcomeText = ''
+            # LaTeX Template initialized!
+            Run `nix build` to compile the document.
+          '';
+        };
+        basic = {
+          path = ./templates/basic;
+          description = "The basic LaTeX template";
+          welcomeText = ''
+            # LaTeX Template initialized!
+            Run `nix build` to compile the document.
+          '';
+        };
+      };
+    };
 }
