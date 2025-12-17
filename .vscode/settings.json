@@ -1,5 +1,5 @@
 {
-	"nixEnvSelector.nixFile": "${workspaceFolder}/default.nix",
+	"nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
 	"latex-workshop.latex.tools": [
 		{
 			"name": "latexmk",
