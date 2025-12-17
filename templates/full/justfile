@@ -1,0 +1,12 @@
+
+default:
+	just -l
+
+build:
+	nix build
+
+clean:
+	rm -rf result
+
+list-fonts:
+	fc-list | cut -d\  -f2-99 | cut -d: -f1 | sort -u
